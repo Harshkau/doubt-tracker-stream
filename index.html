@@ -1,145 +1,196 @@
 <!DOCTYPE html>
-<html>
-    <link  class="icon"rel="icon" href="https://i.postimg.cc/VkhftWcj/doubt-tracker.jpg ">  
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="https://i.postimg.cc/VkhftWcj/doubt-tracker.jpg">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Raleway">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+      body {
+    font-family: 'Raleway', sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    margin: 0;
+    background: #f0f0f0;
+    padding: 10px;
+}
 
-  <head>
-  </head>
-  <body>
-    <!-- add Join Meeting Button -->
-    <button>Join Meeting</button>
+button {
+    padding: 10px 20px;
+    font-size: 16px;
+    cursor: pointer;
+    background: #007bff;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    transition: background 0.3s;
+}
 
-    <!-- for Managing meeting status -->
+button:hover {
+    background: #0056b3;
+}
+
+#textDiv {
+    margin-top: 20px;
+    font-size: 18px;
+    color: #333;
+    text-align: center;
+}
+
+.row {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin-top: 20px;
+    width: 100%;
+}
+
+.video-frame {
+    margin: 10px;
+    border: 2px solid #007bff;
+    border-radius: 5px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    animation: fadeIn 0.5s;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@media (max-width: 600px) {
+    .video-frame {
+        width: 100%;
+        height: auto;
+    }
+
+    button {
+        width: 100%;
+        padding: 15px;
+        font-size: 18px;
+    }
+
+    #textDiv {
+        font-size: 16px;
+    }
+}
+
+@media (min-width: 601px) {
+    .video-frame {
+        width: 300px;
+        height: 200px;
+    }
+}
+
+    </style>
+</head>
+<body>
+    <button class="btn btn-primary">Join Meeting</button>
     <div id="textDiv"></div>
-
-    <!-- render Video -->
     <div class="row" id="videoContainer"></div>
 
-    <script src="index.js"></script>
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
     <script src="https://sdk.videosdk.live/js-sdk/0.0.78/videosdk.js"></script>
     <script>
-         // getting Elements from Dom 
-  const joinButton = document.querySelector("button");
-  const videoContainer = document.getElementById("videoContainer");
-  const textDiv = document.getElementById("textDiv");
-  
-  // decalare Variables
-  let participants = [];
-  let meeting = null;
-  let localParticipant;
-  let localParticipantAudio;
-  let remoteParticipantId = "";
-  
-  joinButton.addEventListener("click", () => {
-    joinButton.style.display = "none";
-    textDiv.textContent = "Please wait, we are joining the meeting";
-  
-    window.VideoSDK.config("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhcGlrZXkiOiIwMTIwYzQ2ZC0wZjAzLTQ5ZTAtODE5NC1iY2RkZTBiMjY5MDciLCJwZXJtaXNzaW9ucyI6WyJhbGxvd19qb2luIl0sImlhdCI6MTcxNjIyMjgzMiwiZXhwIjoxNzE2MzA5MjMyfQ.f9-qkFXAjNasl46IFq-fbgpH-uHcBq1bQkgehaYWOLM") // required;
-    meeting = window.VideoSDK.initMeeting({
-      meetingId: "uicu-skhj-36aa", // required
-      name: "Harsh's Org", // required
-      micEnabled: true, // optional, default: true
-      webcamEnabled: true, // optional, default: true
-    });
-  
-    meeting.join();
-  });
+        const joinButton = document.querySelector("button");
+        const videoContainer = document.getElementById("videoContainer");
+        const textDiv = document.getElementById("textDiv");
 
+        let participants = [];
+        let meeting = null;
+        let localParticipant;
+        let localParticipantAudio;
+        let remoteParticipantId = "";
 
-   // creating video element
-   function createVideoElement(pId) {
-    let videoElement = document.createElement("video");
-    videoElement.classList.add("video-frame");
-    videoElement.setAttribute("id", `v-${pId}`);
-    videoElement.setAttribute("playsinline", true);
-    videoElement.setAttribute("width", "300");
-    return videoElement;
-  }
-  
-  // creating audio element
-  function createAudioElement(pId) {
-    let audioElement = document.createElement("audio");
-    audioElement.setAttribute("autoPlay", "false");
-    audioElement.setAttribute("playsInline", "true");
-    audioElement.setAttribute("controls", "false");
-    audioElement.setAttribute("id", `a-${pId}`);
-    return audioElement;
-  }
-  
-  // creating local participant
-  function createLocalParticipant() {
-    localParticipant = createVideoElement(meeting.localParticipant.id);
-    videoContainer.appendChild(localParticipant);
-  }
-  
-  // setting media track
-  function setTrack(stream, audioElement, participant, isLocal) {
-    if (stream.kind == "video") {
-      const mediaStream = new MediaStream();
-      mediaStream.addTrack(stream.track);
-      let videoElm = document.getElementById(`v-${participant.id}`);
-      videoElm.srcObject = mediaStream;
-      videoElm
-        .play()
-        .catch((error) =>
-          console.error("videoElem.current.play() failed", error)
-        );
-    }
-    if (stream.kind == "audio" && !isLocal) {
-      const mediaStream = new MediaStream();
-      mediaStream.addTrack(stream.track);
-      audioElement.srcObject = mediaStream;
-      audioElement
-        .play()
-        .catch((error) => console.error("audioElem.play() failed", error));
-    }
-  }
+        joinButton.addEventListener("click", () => {
+            joinButton.style.display = "none";
+            textDiv.textContent = "Please wait, we are joining the meeting";
 
-  joinButton.addEventListener("click", () => {
-  // ...
-  // ...
-  // ...
-  
-  // creating local participant
-    createLocalParticipant();
-  
-  // setting local participant stream
-    meeting.localParticipant.on("stream-enabled", (stream) => {
-      setTrack(
-        stream,
-        localParticipantAudio,
-        meeting.localParticipant,
-        (isLocal = true)
-      );
-    });
-  
-    meeting.on("meeting-joined", () => {
-      textDiv.style.display = "none";
-    });
-  
-    // other participants
-    meeting.on("participant-joined", (participant) => {
-      let videoElement = createVideoElement(participant.id);
-      let audioElement = createAudioElement(participant.id);
-      remoteParticipantId = participant.id;
-  
-      participant.on("stream-enabled", (stream) => {
-        setTrack(stream, audioElement, participant, (isLocal = false));
-      });
-      videoContainer.appendChild(videoElement);
-      videoContainer.appendChild(audioElement);
-    });
-  
-    // participants left
-    meeting.on("participant-left", (participant) => {
-      let vElement = document.getElementById(`v-${participant.id}`);
-      vElement.parentNode.removeChild(vElement);
-  
-      let aElement = document.getElementById(`a-${participant.id}`);
-      aElement.parentNode.removeChild(aElement);
-      //remove it from participant list participantId;
-      document.getElementById(`p-${participant.id}`).remove();
-    });
-  });
+            window.VideoSDK.config("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhcGlrZXkiOiIwMTIwYzQ2ZC0wZjAzLTQ5ZTAtODE5NC1iY2RkZTBiMjY5MDciLCJwZXJtaXNzaW9ucyI6WyJhbGxvd19qb2luIl0sImlhdCI6MTcxNjIyMjgzMiwiZXhwIjoxNzE2MzA5MjMyfQ.f9-qkFXAjNasl46IFq-fbgpH-uHcBq1bQkgehaYWOLM"); // required;
+
+            meeting = window.VideoSDK.initMeeting({
+                meetingId: "uicu-skhj-36aa", // required
+                name: "Harsh's Org", // required
+                micEnabled: true, // optional, default: true
+                webcamEnabled: true, // optional, default: true
+            });
+
+            meeting.join();
+            createLocalParticipant();
+
+            meeting.localParticipant.on("stream-enabled", (stream) => {
+                setTrack(stream, localParticipantAudio, meeting.localParticipant, true);
+            });
+
+            meeting.on("meeting-joined", () => {
+                textDiv.style.display = "none";
+            });
+
+            meeting.on("participant-joined", (participant) => {
+                let videoElement = createVideoElement(participant.id);
+                let audioElement = createAudioElement(participant.id);
+                remoteParticipantId = participant.id;
+
+                participant.on("stream-enabled", (stream) => {
+                    setTrack(stream, audioElement, participant, false);
+                });
+
+                videoContainer.appendChild(videoElement);
+                videoContainer.appendChild(audioElement);
+            });
+
+            meeting.on("participant-left", (participant) => {
+                let vElement = document.getElementById(`v-${participant.id}`);
+                vElement.parentNode.removeChild(vElement);
+
+                let aElement = document.getElementById(`a-${participant.id}`);
+                aElement.parentNode.removeChild(aElement);
+            });
+        });
+
+        function createVideoElement(pId) {
+            let videoElement = document.createElement("video");
+            videoElement.classList.add("video-frame");
+            videoElement.setAttribute("id", `v-${pId}`);
+            videoElement.setAttribute("playsinline", true);
+            return videoElement;
+        }
+
+        function createAudioElement(pId) {
+            let audioElement = document.createElement("audio");
+            audioElement.setAttribute("autoPlay", "false");
+            audioElement.setAttribute("playsInline", "true");
+            audioElement.setAttribute("controls", "false");
+            audioElement.setAttribute("id", `a-${pId}`);
+            return audioElement;
+        }
+
+        function createLocalParticipant() {
+            localParticipant = createVideoElement(meeting.localParticipant.id);
+            videoContainer.appendChild(localParticipant);
+        }
+
+        function setTrack(stream, audioElement, participant, isLocal) {
+            if (stream.kind == "video") {
+                const mediaStream = new MediaStream();
+                mediaStream.addTrack(stream.track);
+                let videoElm = document.getElementById(`v-${participant.id}`);
+                videoElm.srcObject = mediaStream;
+                videoElm.play().catch((error) => console.error("videoElem.current.play() failed", error));
+            }
+            if (stream.kind == "audio" && !isLocal) {
+                const mediaStream = new MediaStream();
+                mediaStream.addTrack(stream.track);
+                audioElement.srcObject = mediaStream;
+                audioElement.play().catch((error) => console.error("audioElem.play() failed", error));
+            }
+        }
     </script>
-  </body>
+</body>
 </html>
