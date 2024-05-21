@@ -15,7 +15,7 @@
     justify-content: center;
     min-height: 100vh;
     margin: 0;
-    background: #f0f0f0;
+    background: #d6d5d5c5;
     padding: 10px;
 }
 
@@ -58,6 +58,10 @@ button:hover {
     aspect-ratio: 16 / 9;
 
 }
+#localVideo {
+    transform: scaleX(-1); /* Mirrors the local video horizontally */
+}
+
 
 @keyframes fadeIn {
     from { opacity: 0; }
@@ -100,8 +104,10 @@ button:hover {
     <div class="row" id="videoContainer"></div>
 
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script src="
+    https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js
+    "></script>
+        <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
     <script src="https://sdk.videosdk.live/js-sdk/0.0.78/videosdk.js"></script>
     <script>
         const joinButton = document.querySelector("button");
@@ -118,7 +124,7 @@ button:hover {
             joinButton.style.display = "none";
             textDiv.textContent = "Please wait, we are joining the meeting";
 
-            window.VideoSDK.config("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhcGlrZXkiOiIwMTIwYzQ2ZC0wZjAzLTQ5ZTAtODE5NC1iY2RkZTBiMjY5MDciLCJwZXJtaXNzaW9ucyI6WyJhbGxvd19qb2luIl0sImlhdCI6MTcxNjIyMjgzMiwiZXhwIjoxNzE2MzA5MjMyfQ.f9-qkFXAjNasl46IFq-fbgpH-uHcBq1bQkgehaYWOLM"); // required;
+            window.VideoSDK.config("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhcGlrZXkiOiIwMTIwYzQ2ZC0wZjAzLTQ5ZTAtODE5NC1iY2RkZTBiMjY5MDciLCJwZXJtaXNzaW9ucyI6WyJhbGxvd19qb2luIl0sImlhdCI6MTcxNjMxMDU1MiwiZXhwIjoxNzMxODYyNTUyfQ.PlHPKDcD_qiMHyiSUqPUpxSaDFKeQ-II2utMdbv5lx4"); // required;
 
             meeting = window.VideoSDK.initMeeting({
                 meetingId: "uicu-skhj-36aa", // required
