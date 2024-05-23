@@ -28,6 +28,7 @@ button {
     border: none;
     border-radius: 5px;
     transition: background 0.3s;
+    margin: 5px;
 }
 
 button:hover {
@@ -57,10 +58,7 @@ button:hover {
     animation: fadeIn 0.5s;
     aspect-ratio: 16 / 9;
     transform: scaleX(-1);/* Mirrors the local video horizontally */
-
-
 }
-
 
 @keyframes fadeIn {
     from { opacity: 0; }
@@ -72,7 +70,6 @@ button:hover {
         width: 100%;
         height: auto;
         aspect-ratio: 16 / 9;
-
     }
 
     button {
@@ -91,25 +88,24 @@ button:hover {
         width: 300px;
         height: 200px;
         aspect-ratio: 16 / 9;
-
     }
 }
 
     </style>
 </head>
 <body>
-    <button class="btn btn-primary">Join Meeting</button>
+    <button id="joinButton" class="btn btn-primary">Join Meeting</button>
+    <button id="leaveButton" class="btn btn-danger" style="display:none;">Leave Meeting</button>
     <div id="textDiv"></div>
     <div class="row" id="videoContainer"></div>
 
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
-    <script src="
-    https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js
-    "></script>
-        <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
     <script src="https://sdk.videosdk.live/js-sdk/0.0.78/videosdk.js"></script>
     <script>
-        const joinButton = document.querySelector("button");
+        const joinButton = document.getElementById("joinButton");
+        const leaveButton = document.getElementById("leaveButton");
         const videoContainer = document.getElementById("videoContainer");
         const textDiv = document.getElementById("textDiv");
 
@@ -121,6 +117,7 @@ button:hover {
 
         joinButton.addEventListener("click", () => {
             joinButton.style.display = "none";
+            leaveButton.style.display = "inline-block";
             textDiv.textContent = "Please wait, we are joining the meeting";
 
             window.VideoSDK.config("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhcGlrZXkiOiIwMTIwYzQ2ZC0wZjAzLTQ5ZTAtODE5NC1iY2RkZTBiMjY5MDciLCJwZXJtaXNzaW9ucyI6WyJhbGxvd19qb2luIl0sImlhdCI6MTcxNjMxMDU1MiwiZXhwIjoxNzMxODYyNTUyfQ.PlHPKDcD_qiMHyiSUqPUpxSaDFKeQ-II2utMdbv5lx4"); // required;
@@ -158,11 +155,33 @@ button:hover {
 
             meeting.on("participant-left", (participant) => {
                 let vElement = document.getElementById(`v-${participant.id}`);
-                vElement.parentNode.removeChild(vElement);
+                if (vElement) vElement.parentNode.removeChild(vElement);
 
                 let aElement = document.getElementById(`a-${participant.id}`);
-                aElement.parentNode.removeChild(aElement);
+                if (aElement) aElement.parentNode.removeChild(aElement);
             });
+        });
+
+        leaveButton.addEventListener("click", () => {
+            meeting.leave();
+            leaveButton.style.display = "none";
+            joinButton.style.display = "inline-block";
+            textDiv.textContent = "You have left the meeting";
+
+            // Remove local participant's video
+            let localVideoElement = document.getElementById(`v-${meeting.localParticipant.id}`);
+            if (localVideoElement) localVideoElement.parentNode.removeChild(localVideoElement);
+
+            // Remove all remote participants' videos
+            participants.forEach(participant => {
+                let vElement = document.getElementById(`v-${participant.id}`);
+                if (vElement) vElement.parentNode.removeChild(vElement);
+
+                let aElement = document.getElementById(`a-${participant.id}`);
+                if (aElement) aElement.parentNode.removeChild(aElement);
+            });
+
+            participants = [];
         });
 
         function createVideoElement(pId) {
