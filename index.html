@@ -2,11 +2,10 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Meeting - with screenshot-block attempts</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Modern Meeting App</title>
   <link rel="icon" href="https://i.postimg.cc/VkhftWcj/doubt-tracker.jpg">
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Raleway">
-  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Raleway:400,600&display=swap">
 
   <style>
     body {
@@ -14,313 +13,155 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      justify-content: flex-start;
       min-height: 100vh;
       margin: 0;
-      background: #d6d5d5c5;
-      padding: 10px;
+      background: linear-gradient(135deg, #141e30, #243b55);
+      color: white;
     }
 
-    button {
-      padding: 10px 20px;
-      font-size: 16px;
-      cursor: pointer;
+    header {
+      padding: 15px;
+      text-align: center;
+      font-size: 22px;
+      font-weight: 600;
+      color: #f1f1f1;
+    }
+
+    #videoContainer {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 16px;
+      width: 90%;
+      max-width: 1200px;
+      margin-top: 20px;
+      flex-grow: 1;
+      aspect-ratio: 16 / 9;
+      transform: scaleX(-1);
+    }
+
+    video {
+      width: 100%;
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 6px 18px rgba(0,0,0,0.3);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      background: #000;
+      aspect-ratio: 16 / 9;
+      
+    }
+
+    video:hover {
+      transform: scale(1.02);
+      box-shadow: 0 12px 24px rgba(0,0,0,0.5);
+      aspect-ratio: 16 / 9;
+    }
+
+    .controls {
+      display: flex;
+      justify-content: center;
+      gap: 15px;
+      padding: 15px;
+      position: fixed;
+      bottom: 20px;
+      background: rgba(20, 20, 20, 0.6);
+      border-radius: 50px;
+      backdrop-filter: blur(10px);
+      box-shadow: 0 6px 20px rgba(0,0,0,0.5);
+    }
+
+    .controls button {
+      padding: 14px 20px;
+      border: none;
+      border-radius: 50%;
       background: #007bff;
       color: white;
-      border: none;
-      border-radius: 5px;
-      transition: background 0.3s;
-      margin: 5px;
-    }
-
-    button:hover {
-      background: #0056b3;
-    }
-
-    #textDiv {
-      margin-top: 20px;
       font-size: 18px;
-      color: #333;
-      text-align: center;
-    }
-
-    .row {
+      cursor: pointer;
+      transition: all 0.3s ease;
       display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
-      margin-top: 20px;
-      width: 100%;
-    }
-
-    .video-frame {
-      margin: 10px;
-      border: 2px solid #007bff;
-      border-radius: 5px;
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-      animation: fadeIn 0.5s;
-      aspect-ratio: 16 / 9;
-      transform: scaleX(-1); /* Mirrors the local video horizontally */
-    }
-
-    @keyframes fadeIn {
-      from { opacity: 0; }
-      to { opacity: 1; }
-    }
-
-    @media (max-width: 600px) {
-      .video-frame {
-        width: 100%;
-        height: auto;
-        aspect-ratio: 16 / 9;
-      }
-
-      button {
-        width: 100%;
-        padding: 15px;
-        font-size: 18px;
-      }
-
-      #textDiv {
-        font-size: 16px;
-      }
-    }
-
-    @media (min-width: 601px) {
-      .video-frame {
-        width: 300px;
-        height: 200px;
-        aspect-ratio: 16 / 9;
-      }
-    }
-
-    /* Fullscreen black overlay used when we try to block screenshot */
-    #blockOverlay {
-      position: fixed;
-      inset: 0;
-      background: black;
-      opacity: 1;
-      z-index: 99999;
-      display: none; /* shown when needed */
       align-items: center;
       justify-content: center;
-      pointer-events: auto; /* prevents interaction while shown */
-    }
-    #blockOverlay .msg {
-      color: white;
-      font-size: 20px;
-      text-align: center;
-      padding: 10px 20px;
+      width: 50px;
+      height: 50px;
     }
 
-    /* Watermark (faint text across the screen) */
+    .controls button:hover {
+      background: #0056b3;
+      transform: scale(1.1);
+    }
+
+    .controls button.red {
+      background: #dc3545;
+    }
+
+    .controls button.red:hover {
+      background: #a71d2a;
+    }
+
     #watermark {
       position: fixed;
-      top: 40%;
-      left: -10%;
-      font-size: 36px;
-      opacity: 0.12;
+      top: 45%;
+      left: -15%;
+      font-size: 42px;
+      opacity: 0.1;
       transform: rotate(-30deg);
       pointer-events: none;
-      z-index: 99998;
       white-space: nowrap;
       user-select: none;
+      color: white;
     }
   </style>
 </head>
 <body>
-  <button id="joinButton" class="btn btn-primary">Join Meeting</button>
-  <button id="leaveButton" class="btn btn-danger" style="display:none;">Leave Meeting</button>
-  <div id="textDiv"> </div>
-  <div class="row" id="videoContainer"></div>
+  <header>🔒 Secure Meeting Room</header>
 
-  <!-- black overlay that appears briefly when screenshot-like event detected -->
-  <div id="blockOverlay" aria-hidden="true">
-    <div class="msg">Content hidden for privacy</div>
+  <div id="videoContainer"></div>
+
+
+
+  <div class="controls">
+    <button id="joinBtn" title="Join Meeting">▶</button>
+    <button id="leaveBtn" class="red" style="display:none;" title="Leave Meeting">⏹</button>
+    <button id="toggleCamBtn" title="Toggle Camera">📷</button>
+    <button id="toggleMicBtn" title="Toggle Mic">🎤</button>
   </div>
 
-  <!-- watermark: dynamically filled -->
-  <div id="watermark"></div>
-
-  <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js"></script>
-  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
   <script src="https://sdk.videosdk.live/js-sdk/0.0.78/videosdk.js"></script>
-
   <script>
-    /* ============================
-       Configuration & helpers
-       ============================ */
-    const joinButton = document.getElementById("joinButton");
-    const leaveButton = document.getElementById("leaveButton");
+    const joinBtn = document.getElementById("joinBtn");
+    const leaveBtn = document.getElementById("leaveBtn");
+    const camBtn = document.getElementById("toggleCamBtn");
+    const micBtn = document.getElementById("toggleMicBtn");
     const videoContainer = document.getElementById("videoContainer");
-    const textDiv = document.getElementById("textDiv");
-    const blockOverlay = document.getElementById("blockOverlay");
-    const watermarkEl = document.getElementById("watermark");
 
-    // Duration (ms) to keep overlay visible after a detected event
-    const OVERLAY_DURATION = 2500;
-
-    let overlayTimeout = null;
     let meeting = null;
-    let localParticipant = null;
-    let participants = [];
+    let camOn = true;
+    let micOn = true;
 
-    // You can change the watermark text here or call setWatermark('Name or email')
-    function setWatermark(text) {
-      watermarkEl.textContent = text || (`Protected • ${new Date().toLocaleString()}`);
-    }
+    joinBtn.addEventListener("click", () => {
+      joinBtn.style.display = "none";
+      leaveBtn.style.display = "inline-block";
 
-    // show black overlay (blocks interaction)
-    function showOverlay(msg) {
-      if (msg) blockOverlay.querySelector('.msg').textContent = msg;
-      blockOverlay.style.display = "flex";
-      if (overlayTimeout) clearTimeout(overlayTimeout);
-      overlayTimeout = setTimeout(() => {
-        hideOverlay();
-      }, OVERLAY_DURATION);
-    }
-
-    // hide black overlay
-    function hideOverlay() {
-      blockOverlay.style.display = "none";
-      blockOverlay.querySelector('.msg').textContent = "Content hidden for privacy";
-      if (overlayTimeout) { clearTimeout(overlayTimeout); overlayTimeout = null; }
-    }
-
-    // Try to clear clipboard (may require permissions; will often fail silently)
-    async function tryClearClipboard() {
-      try {
-        if (navigator.clipboard && navigator.clipboard.writeText) {
-          await navigator.clipboard.writeText("");
-          // clipboard cleared (if allowed)
-        }
-      } catch (err) {
-        // ignore errors — many browsers block clipboard writes without user interaction
-        // console.warn('clipboard clear failed', err);
-      }
-    }
-
-    /* ============================
-       Event-based "blocking" heuristics
-       ============================ */
-
-    // 1) Detect PrintScreen keyKey or keyCode 44
-    window.addEventListener('keydown', (e) => {
-      // Common keys/hotkeys to try to catch
-      const key = e.key || "";
-      const code = e.keyCode || e.which || 0;
-
-      // key === 'PrintScreen' works in some browsers; keyCode 44 is PrintScreen on many
-      if (key.toLowerCase() === 'printscreen' || code === 44) {
-        // show overlay & try to clear clipboard
-        showOverlay('Screenshots detected — hiding content for privacy');
-        tryClearClipboard();
-      }
-
-      // Try to block some OS/browser shortcuts that might be used for capture
-      // e.g. Windows: Win+Shift+S doesn't always reach browser; Chrome: Ctrl+Shift+I (devtools)
-      if (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'S' || e.key === 'i' || e.key === 's')) {
-        e.preventDefault();
-        showOverlay('This action is blocked for privacy');
-      }
-      if (e.key === 'F12') {
-        e.preventDefault();
-        showOverlay('This action is blocked for privacy');
-      }
-      // common print/save shortcuts
-      if ((e.ctrlKey && e.key === 'p') || (e.ctrlKey && e.key === 's')) {
-        e.preventDefault();
-        showOverlay('This action is blocked for privacy');
-      }
-    }, true);
-
-    // 2) Listen for 'keyup' to also attempt detection
-    window.addEventListener('keyup', (e) => {
-      const key = e.key || "";
-      const code = e.keyCode || e.which || 0;
-      if (key.toLowerCase() === 'printscreen' || code === 44) {
-        showOverlay('Screenshots detected — hiding content for privacy');
-        tryClearClipboard();
-      }
-    }, true);
-
-    // 3) Visibility change & blur - when user switches away or OS overlay might appear
-    document.addEventListener('visibilitychange', () => {
-      if (document.hidden) {
-        // hide when tab is not visible
-        showOverlay('Hidden for privacy');
-      } else {
-        hideOverlay();
-      }
-    });
-
-    window.addEventListener('blur', () => {
-      // When window loses focus (user alt-tabs, uses OS screenshot tool, etc.) hide immediately
-      showOverlay('Hidden for privacy');
-    });
-
-    window.addEventListener('focus', () => {
-      // restore after focus
-      // small delay to prevent flicker if overlay was intentionally triggered
-      setTimeout(() => hideOverlay(), 300);
-    });
-
-    // 4) Context menu / right-click & certain key combos
-    document.addEventListener('contextmenu', (e) => {
-      e.preventDefault();
-      showOverlay('Right-click disabled for privacy');
-    });
-
-    document.addEventListener('copy', (e) => {
-      // prevent copying
-      e.preventDefault();
-      showOverlay('Copy disabled for privacy');
-    });
-
-    // 5) Try to detect mobile screenshot attempts: mobile devices rarely expose an event.
-    // We'll watch for rapid screenshot-like gestures: many mobile screenshots trigger visibilitychange/blur.
-    // (Nothing else reliable we can do here.)
-
-    /* ============================
-       Meeting code (your existing logic, integrated)
-       ============================ */
-
-    joinButton.addEventListener("click", () => {
-      joinButton.style.display = "none";
-      leaveButton.style.display = "inline-block";
-      textDiv.textContent = "Please wait, we are joining the meeting";
-
-      // set watermark to show identifying info (you can change)
-      setWatermark("Protected • " + (new Date()).toLocaleString());
-
-      // initialize VideoSDK (your token from before)
-      window.VideoSDK.config("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhcGlrZXkiOiIwMTIwYzQ2ZC0wZjAzLTQ5ZTAtODE5NC1iY2RkZTBiMjY5MDciLCJwZXJtaXNzaW9ucyI6WyJhbGxvd19qb2luIl0sImlhdCI6MTcxNzQwNDY2MSwiZXhwIjoxODc1MTkyNjYxfQ.woxgzOkI6G24VCjJ_bKG5AC59yvUALGvKb5nVJLV7Ro"); // required;
-
+      window.VideoSDK.config("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhcGlrZXkiOiIwMTIwYzQ2ZC0wZjAzLTQ5ZTAtODE5NC1iY2RkZTBiMjY5MDciLCJwZXJtaXNzaW9ucyI6WyJhbGxvd19qb2luIl0sImlhdCI6MTcxNzQwNDY2MSwiZXhwIjoxODc1MTkyNjYxfQ.woxgzOkI6G24VCjJ_bKG5AC59yvUALGvKb5nVJLV7Ro");
       meeting = window.VideoSDK.initMeeting({
-        meetingId: "uicu-skhj-36aa", // required
-        name: "Harsh's Org", // required
-        micEnabled: true, // optional, default: true
-        webcamEnabled: true, // optional, default: true
+        meetingId: "uicu-skhj-36aa",
+        name: "Harsh's Org",
+        micEnabled: true,
+        webcamEnabled: true,
       });
 
       meeting.join();
-      createLocalParticipant();
 
       meeting.localParticipant.on("stream-enabled", (stream) => {
-        setTrack(stream, null, meeting.localParticipant, true);
-      });
-
-      meeting.on("meeting-joined", () => {
-        textDiv.style.display = "none";
+        attachStream(stream, meeting.localParticipant);
       });
 
       meeting.on("participant-joined", (participant) => {
-        participants.push(participant);
-        let videoElement = createVideoElement(participant.id);
-        let audioElement = createAudioElement(participant.id);
+        const videoElement = createVideoElement(participant.id);
+        const audioElement = createAudioElement(participant.id);
 
         participant.on("stream-enabled", (stream) => {
-          setTrack(stream, audioElement, participant, false);
+          attachStream(stream, participant);
         });
 
         videoContainer.appendChild(videoElement);
@@ -328,118 +169,70 @@
       });
 
       meeting.on("participant-left", (participant) => {
-        participants = participants.filter(p => p.id !== participant.id);
-        let vElement = document.getElementById(`v-${participant.id}`);
-        if (vElement) vElement.parentNode.removeChild(vElement);
-
-        let aElement = document.getElementById(`a-${participant.id}`);
-        if (aElement) aElement.parentNode.removeChild(aElement);
+        removeElements(participant.id);
       });
     });
 
-    leaveButton.addEventListener("click", () => {
+    leaveBtn.addEventListener("click", () => {
       if (meeting) meeting.leave();
-      leaveButton.style.display = "none";
-      joinButton.style.display = "inline-block";
-      textDiv.textContent = "You have left the meeting";
-
-      // Remove local participant's video
-      if (meeting && meeting.localParticipant) {
-        let localVideoElement = document.getElementById(`v-${meeting.localParticipant.id}`);
-        if (localVideoElement) localVideoElement.parentNode.removeChild(localVideoElement);
-      }
-
-      // Remove all remote participants' videos
-      participants.forEach(participant => {
-        let vElement = document.getElementById(`v-${participant.id}`);
-        if (vElement) vElement.parentNode.removeChild(vElement);
-
-        let aElement = document.getElementById(`a-${participant.id}`);
-        if (aElement) aElement.parentNode.removeChild(aElement);
-      });
-
-      participants = [];
+      leaveBtn.style.display = "none";
+      joinBtn.style.display = "inline-block";
+      videoContainer.innerHTML = "";
     });
 
-    function createVideoElement(pId) {
-      let videoElement = document.createElement("video");
-      videoElement.classList.add("video-frame");
-      videoElement.setAttribute("id", `v-${pId}`);
-      videoElement.setAttribute("playsinline", true);
-      videoElement.muted = (pId === (meeting && meeting.localParticipant && meeting.localParticipant.id)); // mute local by default
-      return videoElement;
+    camBtn.addEventListener("click", () => {
+      if (!meeting) return;
+      camOn = !camOn;
+      meeting.toggleWebcam();
+      camBtn.textContent = camOn ? "📷" : "🚫📷";
+    });
+
+    micBtn.addEventListener("click", () => {
+      if (!meeting) return;
+      micOn = !micOn;
+      meeting.toggleMic();
+      micBtn.textContent = micOn ? "🎤" : "🔇";
+    });
+
+    function createVideoElement(id) {
+      const video = document.createElement("video");
+      video.id = `v-${id}`;
+      video.autoplay = true;
+      video.playsInline = true;
+      video.muted = true;
+      return video;
     }
 
-    function createAudioElement(pId) {
-      let audioElement = document.createElement("audio");
-      audioElement.setAttribute("autoplay", "false");
-      audioElement.setAttribute("playsinline", "true");
-      audioElement.setAttribute("controls", "false");
-      audioElement.setAttribute("id", `a-${pId}`);
-      return audioElement;
+    function createAudioElement(id) {
+      const audio = document.createElement("audio");
+      audio.id = `a-${id}`;
+      audio.autoplay = true;
+      return audio;
     }
 
-    function createLocalParticipant() {
-      if (!meeting || !meeting.localParticipant) return;
-      localParticipant = createVideoElement(meeting.localParticipant.id);
-      videoContainer.appendChild(localParticipant);
-    }
-
-    function setTrack(stream, audioElement, participant, isLocal) {
+    function attachStream(stream, participant) {
       if (stream.kind === "video") {
         const mediaStream = new MediaStream();
         mediaStream.addTrack(stream.track);
-        let videoElm = document.getElementById(`v-${participant.id}`);
-        if (videoElm) {
-          videoElm.srcObject = mediaStream;
-          videoElm.play().catch((error) => console.error("videoElem.current.play() failed", error));
-        }
+        const videoElm = document.getElementById(`v-${participant.id}`) || createVideoElement(participant.id);
+        videoElm.srcObject = mediaStream;
+        videoContainer.appendChild(videoElm);
       }
-      if (stream.kind === "audio" && !isLocal) {
+      if (stream.kind === "audio") {
         const mediaStream = new MediaStream();
         mediaStream.addTrack(stream.track);
-        if (audioElement) {
-          audioElement.srcObject = mediaStream;
-          audioElement.play().catch((error) => console.error("audioElem.play() failed", error));
-        }
+        const audioElm = document.getElementById(`a-${participant.id}`) || createAudioElement(participant.id);
+        audioElm.srcObject = mediaStream;
+        videoContainer.appendChild(audioElm);
       }
     }
 
-    /* ============================
-       Extra: polite user-facing control
-       ============================ */
-
-    // allow user to manually toggle watermark and overlay for testing
-    // (Not required; useful in development)
-    (function addDevControls() {
-      const controls = document.createElement('div');
-      controls.style.position = 'fixed';
-      controls.style.bottom = '12px';
-      controls.style.right = '12px';
-      controls.style.zIndex = 99999;
-      controls.style.display = 'flex';
-      controls.style.gap = '8px';
-
-      const btnWM = document.createElement('button');
-      btnWM.textContent = 'Toggle Watermark';
-      btnWM.onclick = () => {
-        watermarkEl.style.display = watermarkEl.style.display === 'none' ? 'block' : 'none';
-      };
-
-      const btnOverlay = document.createElement('button');
-      btnOverlay.textContent = 'Test Overlay';
-      btnOverlay.onclick = () => showOverlay('Testing privacy overlay');
-
-      controls.appendChild(btnWM);
-      controls.appendChild(btnOverlay);
-      document.body.appendChild(controls);
-    })();
-
-    // Set initial watermark
-    setWatermark("Protected • " + (new Date()).toLocaleString());
-
-    // NOTE: This is a deterrent implementation — it will NOT stop all screenshots.
-    // OS-level, hardware, and many other capture methods are outside browser control.
+    function removeElements(id) {
+      ["v-"+id, "a-"+id].forEach(elId => {
+        const el = document.getElementById(elId);
+        if (el) el.remove();
+      });
+    }
   </script>
 </body>
 </html>
