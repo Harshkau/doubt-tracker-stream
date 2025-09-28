@@ -47,13 +47,11 @@
       transition: transform 0.3s ease, box-shadow 0.3s ease;
       background: #000;
       aspect-ratio: 16 / 9;
-      
     }
 
     video:hover {
       transform: scale(1.02);
       box-shadow: 0 12px 24px rgba(0,0,0,0.5);
-      aspect-ratio: 16 / 9;
     }
 
     .controls {
@@ -67,6 +65,7 @@
       border-radius: 50px;
       backdrop-filter: blur(10px);
       box-shadow: 0 6px 20px rgba(0,0,0,0.5);
+      flex-wrap: wrap;
     }
 
     .controls button {
@@ -98,17 +97,14 @@
       background: #a71d2a;
     }
 
-    #watermark {
-      position: fixed;
-      top: 45%;
-      left: -15%;
-      font-size: 42px;
-      opacity: 0.1;
-      transform: rotate(-30deg);
-      pointer-events: none;
-      white-space: nowrap;
-      user-select: none;
-      color: white;
+    .filter-select {
+      padding: 10px;
+      border-radius: 10px;
+      border: none;
+      font-size: 14px;
+      background: rgba(255,255,255,0.9);
+      color: #000;
+      cursor: pointer;
     }
   </style>
 </head>
@@ -117,13 +113,23 @@
 
   <div id="videoContainer"></div>
 
-
-
   <div class="controls">
     <button id="joinBtn" title="Join Meeting">▶</button>
     <button id="leaveBtn" class="red" style="display:none;" title="Leave Meeting">⏹</button>
     <button id="toggleCamBtn" title="Toggle Camera">📷</button>
     <button id="toggleMicBtn" title="Toggle Mic">🎤</button>
+    <select id="filterSelect" class="filter-select">
+      <option value="none">Normal</option>
+      <option value="contrast(120%) saturate(130%) brightness(110%)">Vivid (Apple)</option>
+      <option value="sepia(20%) hue-rotate(-10deg) saturate(120%) brightness(105%)">Warm Tone</option>
+      <option value="contrast(160%) brightness(110%) saturate(140%) drop-shadow(0 0 4px rgba(0,0,0,0.5))">HDR</option>
+      <option value="saturate(200%)">Saturate</option>
+      <option value="contrast(120%) brightness(90%) saturate(120%) sepia(20%) hue-rotate(-10deg)">Cinematic</option>
+      <option value="blur(3px) brightness(110%) saturate(120%) contrast(90%)">Aesthetic Blur</option>
+      <option value="grayscale(100%)">B/W Classic</option>
+      <option value="invert(100%)">Invert</option>
+      <option value="hue-rotate(90deg)">Funky Colors</option>
+    </select>
   </div>
 
   <script src="https://sdk.videosdk.live/js-sdk/0.0.78/videosdk.js"></script>
@@ -132,16 +138,19 @@
     const leaveBtn = document.getElementById("leaveBtn");
     const camBtn = document.getElementById("toggleCamBtn");
     const micBtn = document.getElementById("toggleMicBtn");
+    const filterSelect = document.getElementById("filterSelect");
     const videoContainer = document.getElementById("videoContainer");
 
     let meeting = null;
     let camOn = true;
     let micOn = true;
+    let currentFilter = "none";
 
     joinBtn.addEventListener("click", () => {
       joinBtn.style.display = "none";
       leaveBtn.style.display = "inline-block";
 
+      // VideoSDK Config with API key
       window.VideoSDK.config("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhcGlrZXkiOiIwMTIwYzQ2ZC0wZjAzLTQ5ZTAtODE5NC1iY2RkZTBiMjY5MDciLCJwZXJtaXNzaW9ucyI6WyJhbGxvd19qb2luIl0sImlhdCI6MTcxNzQwNDY2MSwiZXhwIjoxODc1MTkyNjYxfQ.woxgzOkI6G24VCjJ_bKG5AC59yvUALGvKb5nVJLV7Ro");
       meeting = window.VideoSDK.initMeeting({
         meetingId: "uicu-skhj-36aa",
@@ -194,12 +203,21 @@
       micBtn.textContent = micOn ? "🎤" : "🔇";
     });
 
+    // Apply filter when dropdown changes
+    filterSelect.addEventListener("change", (e) => {
+      currentFilter = e.target.value;
+      document.querySelectorAll("video").forEach(video => {
+        video.style.filter = currentFilter;
+      });
+    });
+
     function createVideoElement(id) {
       const video = document.createElement("video");
       video.id = `v-${id}`;
       video.autoplay = true;
       video.playsInline = true;
       video.muted = true;
+      video.style.filter = currentFilter; 
       return video;
     }
 
@@ -216,6 +234,7 @@
         mediaStream.addTrack(stream.track);
         const videoElm = document.getElementById(`v-${participant.id}`) || createVideoElement(participant.id);
         videoElm.srcObject = mediaStream;
+        videoElm.style.filter = currentFilter; 
         videoContainer.appendChild(videoElm);
       }
       if (stream.kind === "audio") {
