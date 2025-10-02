@@ -12,7 +12,6 @@
       font-family: 'Raleway', sans-serif;
       display: flex;
       flex-direction: column;
-      align-items: center;
       min-height: 100vh;
       margin: 0;
       background: linear-gradient(135deg, #141e30, #243b55);
@@ -27,21 +26,30 @@
       color: #f1f1f1;
     }
 
-    #videoContainer {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-      gap: 16px;
-      width: 90%;
-      max-width: 1200px;
-      margin-top: 20px;
+    main {
       flex-grow: 1;
+      display: flex;
+      gap: 20px;
+      width: 100%;
+      padding: 10px;
+      box-sizing: border-box;
+    }
+
+    /* Video Grid */
+    #videoContainer {
+      flex: 3;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 12px;
+      width: 100%;
+      margin-top: 10px;
       aspect-ratio: 16 / 9;
       transform: scaleX(-1);
     }
 
     video {
       width: 100%;
-      border-radius: 16px;
+      border-radius: 12px;
       overflow: hidden;
       box-shadow: 0 6px 18px rgba(0,0,0,0.3);
       transition: transform 0.3s ease, box-shadow 0.3s ease;
@@ -54,6 +62,74 @@
       box-shadow: 0 12px 24px rgba(0,0,0,0.5);
     }
 
+    /* Chat Box */
+    #chatBox {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      background: rgba(20, 20, 20, 0.6);
+      border-radius: 12px;
+      padding: 10px;
+      backdrop-filter: blur(10px);
+      box-shadow: 0 6px 20px rgba(0,0,0,0.5);
+    }
+
+    #messages {
+      flex-grow: 1;
+      overflow-y: auto;
+      margin-bottom: 10px;
+      padding: 5px;
+    }
+
+    .message {
+      margin: 5px 0;
+      padding: 8px 12px;
+      border-radius: 12px;
+      max-width: 80%;
+      word-wrap: break-word;
+      font-size: 14px;
+    }
+
+    .sent {
+      background: #007bff;
+      align-self: flex-end;
+      color: white;
+    }
+
+    .received {
+      background: #444;
+      align-self: flex-start;
+      color: white;
+    }
+
+    #chatInput {
+      display: flex;
+      gap: 5px;
+    }
+
+    #chatInput input {
+      flex: 1;
+      padding: 10px;
+      border-radius: 20px;
+      border: none;
+      outline: none;
+    }
+
+    #chatInput button {
+      padding: 10px 16px;
+      border: none;
+      border-radius: 50%;
+      background: #007bff;
+      color: white;
+      font-size: 16px;
+      cursor: pointer;
+    }
+
+    #chatInput button:hover {
+      background: #0056b3;
+    }
+
+    /* Controls */
     .controls {
       display: flex;
       justify-content: center;
@@ -61,11 +137,14 @@
       padding: 15px;
       position: fixed;
       bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
       background: rgba(20, 20, 20, 0.6);
       border-radius: 50px;
       backdrop-filter: blur(10px);
       box-shadow: 0 6px 20px rgba(0,0,0,0.5);
       flex-wrap: wrap;
+      z-index: 100;
     }
 
     .controls button {
@@ -106,12 +185,36 @@
       color: #000;
       cursor: pointer;
     }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      main {
+        flex-direction: column;
+      }
+      #videoContainer {
+        transform: scaleX(-1);
+      }
+      #chatBox {
+        flex: none;
+        height: 250px;
+      }
+    }
   </style>
 </head>
 <body>
   <header>🔒 Secure Meeting Room</header>
 
-  <div id="videoContainer"></div>
+  <main>
+    <div id="videoContainer"></div>
+
+    <div id="chatBox">
+      <div id="messages"></div>
+      <div id="chatInput">
+        <input type="text" id="msgInput" placeholder="Type a message..."/>
+        <button id="sendBtn">➤</button>
+      </div>
+    </div>
+  </main>
 
   <div class="controls">
     <button id="joinBtn" title="Join Meeting">▶</button>
@@ -120,15 +223,11 @@
     <button id="toggleMicBtn" title="Toggle Mic">🎤</button>
     <select id="filterSelect" class="filter-select">
       <option value="none">Normal</option>
-      <option value="contrast(120%) saturate(130%) brightness(110%)">Vivid (Apple)</option>
+      <option value="contrast(120%) saturate(130%) brightness(110%)">Vivid</option>
       <option value="sepia(20%) hue-rotate(-10deg) saturate(120%) brightness(105%)">Warm Tone</option>
-      <option value="contrast(160%) brightness(110%) saturate(140%) drop-shadow(0 0 4px rgba(0,0,0,0.5))">HDR</option>
+      <option value="contrast(160%) brightness(110%) saturate(140%)">HDR</option>
       <option value="saturate(200%)">Saturate</option>
-      <option value="contrast(120%) brightness(90%) saturate(120%) sepia(20%) hue-rotate(-10deg)">Cinematic</option>
-      <option value="blur(3px) brightness(110%) saturate(120%) contrast(90%)">Aesthetic Blur</option>
       <option value="grayscale(100%)">B/W Classic</option>
-      <option value="invert(100%)">Invert</option>
-      <option value="hue-rotate(90deg)">Funky Colors</option>
     </select>
   </div>
 
@@ -141,10 +240,36 @@
     const filterSelect = document.getElementById("filterSelect");
     const videoContainer = document.getElementById("videoContainer");
 
+    const msgInput = document.getElementById("msgInput");
+    const sendBtn = document.getElementById("sendBtn");
+    const messages = document.getElementById("messages");
+
     let meeting = null;
     let camOn = true;
     let micOn = true;
     let currentFilter = "none";
+
+    // Chat function
+    function addMessage(text, type="sent") {
+      const msg = document.createElement("div");
+      msg.className = `message ${type}`;
+      msg.textContent = text;
+      messages.appendChild(msg);
+      messages.scrollTop = messages.scrollHeight;
+    }
+
+    sendBtn.addEventListener("click", () => {
+      const text = msgInput.value.trim();
+      if(text && meeting){
+        meeting.sendChatMessage(text); // Send via VideoSDK
+        addMessage(text, "sent");
+        msgInput.value = "";
+      }
+    });
+
+    msgInput.addEventListener("keypress", (e) => {
+      if(e.key === "Enter") sendBtn.click();
+    });
 
     joinBtn.addEventListener("click", () => {
       joinBtn.style.display = "none";
@@ -152,6 +277,7 @@
 
       // VideoSDK Config with API key
       window.VideoSDK.config("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhcGlrZXkiOiIwMTIwYzQ2ZC0wZjAzLTQ5ZTAtODE5NC1iY2RkZTBiMjY5MDciLCJwZXJtaXNzaW9ucyI6WyJhbGxvd19qb2luIl0sImlhdCI6MTcxNzQwNDY2MSwiZXhwIjoxODc1MTkyNjYxfQ.woxgzOkI6G24VCjJ_bKG5AC59yvUALGvKb5nVJLV7Ro");
+
       meeting = window.VideoSDK.initMeeting({
         meetingId: "uicu-skhj-36aa",
         name: "Harsh's Org",
@@ -168,17 +294,20 @@
       meeting.on("participant-joined", (participant) => {
         const videoElement = createVideoElement(participant.id);
         const audioElement = createAudioElement(participant.id);
-
         participant.on("stream-enabled", (stream) => {
           attachStream(stream, participant);
         });
-
         videoContainer.appendChild(videoElement);
         videoContainer.appendChild(audioElement);
       });
 
       meeting.on("participant-left", (participant) => {
         removeElements(participant.id);
+      });
+
+      // Receive chat messages
+      meeting.on("chat-message", (data) => {
+        addMessage(`${data.senderName}: ${data.message}`, "received");
       });
     });
 
@@ -217,7 +346,7 @@
       video.autoplay = true;
       video.playsInline = true;
       video.muted = true;
-      video.style.filter = currentFilter; 
+      video.style.filter = currentFilter;
       return video;
     }
 
@@ -234,7 +363,7 @@
         mediaStream.addTrack(stream.track);
         const videoElm = document.getElementById(`v-${participant.id}`) || createVideoElement(participant.id);
         videoElm.srcObject = mediaStream;
-        videoElm.style.filter = currentFilter; 
+        videoElm.style.filter = currentFilter;
         videoContainer.appendChild(videoElm);
       }
       if (stream.kind === "audio") {
